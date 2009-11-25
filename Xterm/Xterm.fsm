@@ -1,0 +1,145 @@
+$CSI:\E\[
+$NUM_NON_ZERO:(1{((Xterm)context).param.Push(1);
+	}|2{((Xterm)context).param.Push(2);
+	}|3{((Xterm)context).param.Push(3);
+	}|4{((Xterm)context).param.Push(4);
+	}|5{((Xterm)context).param.Push(5);
+	}|6{((Xterm)context).param.Push(6);
+	}|7{((Xterm)context).param.Push(7);
+	}|8{((Xterm)context).param.Push(8);
+	}|9{((Xterm)context).param.Push(9);
+	})(0{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10);
+	}|1{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+1);
+	}|2{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+2);
+	}|3{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+3);
+	}|4{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+4);
+	}|5{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+5);
+	}|6{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+6);
+	}|7{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+7);
+	}|8{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+8);
+	}|9{((Xterm)context).param.Push(((Xterm)context).param.Pop()*10+9);
+	})*
+$NUM:[NUM_NON_ZERO]|0{((Xterm)context).param.Push(0);}
+$NUM_EX:;[NUM]
+$NUMS:[NUM_EX][NUM_EX]*
+$CSI_OPT_NUM:@{
+		Xterm x = (Xterm)context;
+		for (int i = (x.param.Count == 1) ? x.param.Pop() : 1; i > 0; i--)
+			x.term.PutChar(' ', 0);
+	}|J{
+		Xterm x = (Xterm)context;
+		x.term.EarseDisplay((x.param.Count == 1) ? x.param.Pop() : 0);
+	}|K{
+		Xterm x = (Xterm)context;
+		x.term.EarseLine((x.param.Count == 1) ? x.param.Pop() : 0);
+	}
+$CSI_VARY_NUMS:m{
+		Xterm x = (Xterm)context;
+		if (x.param.Count == 0)
+		{
+			x.term.fg = x.default_fg;
+			x.term.bg = x.default_bg;
+		\}
+		else
+		{
+			System.Collections.Generic.Stack<int> tmp = new System.Collections.Generic.Stack<int>();
+			while (x.param.Count > 0)
+			{
+				tmp.Push(x.param.Pop());
+			\}
+
+			while (tmp.Count > 0)
+			{
+				switch (tmp.Pop())
+				{
+					case 0:
+						x.term.fg = x.default_fg;
+						x.term.bg = x.default_bg;
+						break;
+					case 30:
+						x.term.fg = System.Drawing.Color.Black;
+						break;
+					case 31:
+						x.term.fg = System.Drawing.Color.Red;
+						break;
+					case 32:
+						x.term.fg = System.Drawing.Color.Green;
+						break;
+					case 33:
+						x.term.fg = System.Drawing.Color.Yellow;
+						break;
+					case 34:
+						x.term.fg = System.Drawing.Color.Blue;
+						break;
+					case 35:
+						x.term.fg = System.Drawing.Color.Magenta;
+						break;
+					case 36:
+						x.term.fg = System.Drawing.Color.Cyan;
+						break;
+					case 37:
+						x.term.fg = System.Drawing.Color.White;
+						break;
+					case 39:
+						x.term.fg = x.default_fg;
+						break;
+					case 40:
+						x.term.bg = System.Drawing.Color.Black;
+						break;
+					case 41:
+						x.term.bg = System.Drawing.Color.DarkRed;
+						break;
+					case 42:
+						x.term.bg = System.Drawing.Color.DarkGreen;
+						break;
+					case 43:
+						x.term.bg = System.Drawing.Color.Gold;
+						break;
+					case 44:
+						x.term.bg = System.Drawing.Color.DarkBlue;
+						break;
+					case 45:
+						x.term.bg = System.Drawing.Color.DarkMagenta;
+						break;
+					case 46:
+						x.term.bg = System.Drawing.Color.DarkCyan;
+						break;
+					case 47:
+						x.term.bg = System.Drawing.Color.GhostWhite;
+						break;
+					case 49:
+						x.term.bg = x.default_bg;
+						break;
+				\}
+			\}
+		\}
+	}
+$CSI_TWO_NUMS:[CSI_VARY_NUMS]|H{
+		Xterm x = (Xterm)context;
+		int col = x.param.Pop();
+		int line = x.param.Pop();
+		x.term.MoveCursor(line - 1, col - 1);
+	}
+$CSI_ONE_NUM:[CSI_OPT_NUM]|[CSI_VARY_NUMS]
+$CSI_NO_NUM:[CSI_OPT_NUM]|[CSI_VARY_NUMS]|H{
+		Xterm x = (Xterm)context;
+		x.term.MoveCursor(0, 0);
+	}
+$BEGIN_WITH_CSI:[CSI]([CSI_NO_NUM]|([NUM]([CSI_ONE_NUM]|([NUM_EX]([CSI_TWO_NUMS]|([NUMS][CSI_VARY_NUMS]))))))
+$CMD:[BEGIN_WITH_CSI]|\n{
+		Xterm x = (Xterm)context;
+		x.term.PutNewLine();
+	}|\r{
+		Xterm x = (Xterm)context;
+		x.term.PutCarriageRet();
+	}|\b{
+		Xterm x = (Xterm)context;
+		x.term.BackSpace();
+	}|\d{
+		Xterm x = (Xterm)context;
+		x.term.DelChar();
+	}|.{
+		Xterm x = (Xterm)context;
+		x.term.PutChar(c, 0);
+	}
+[CMD]*

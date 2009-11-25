@@ -1,0 +1,9 @@
+bin/
+obj/
+Debug/
+Release/
+FiniteStateMachine/yy.cs
+Xterm/Input.cs
+*.ncb
+*.suo
+*.user
